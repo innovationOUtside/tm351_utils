@@ -1,3 +1,6 @@
+import subprocess
+from IPython.core.display import HTML
+import difflib
 
 
 #Run this cell to create the table_def() function to generate tidy output from pg_dump
@@ -28,8 +31,6 @@ def table_def(table,db='tm351test', retval=False, noprint=False):
 #Diff two text strings and generate some coloured HTML to show the diffs
 
 #https://github.com/dsindex/blog/wiki/%5Bpython%5D-difflib,-show-differences-between-two-strings
-from IPython.core.display import HTML
-import difflib
 def show_diff(text, n_text, retval=False):
     """
     Display the difference between two strings.
