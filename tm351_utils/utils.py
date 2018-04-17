@@ -5,7 +5,7 @@ import difflib
 
 #Run this cell to create the table_def() function to generate tidy output from pg_dump
 #You don't need to know how the Linux command line voodoo works...
-def table_def(table,db='tm351test', retval=False, noprint=False):
+def table_def(table,db='tm351', retval=False, noprint=False):
     ''' Helper function defined to display a tidied up version 
         of the table creation statements
         created using pg_dump '''
