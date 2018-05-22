@@ -1,12 +1,24 @@
 from sqlalchemy import create_engine
 from pandas import read_sql as psql
 
+
+def _getConnection(dbname='tm351',
+                     host='localhost', port=5432,
+                     user='tm351admin', password='tm351admin'):
+    engine = create_engine("postgresql://{user}:{password}@{host}:{port}/{dbname}".format(dbname=dbname, host=host, port=port, user=user, password=password))
+    conn = engine.connect()
+    conn.execution_options(isolation_level="AUTOCOMMIT")
+    return conn
+    
+    
+    
 def showDatabases(dbname='tm351',
                 host='localhost', port=5432,
-                user='tm351', password='tm351'):
+                user='tm351', password='tm351', allusers=False):
     ''' Return list of databases. '''
     conn = _getConnection(dbname, host, port, user, password)
-    q="SELECT datname, pg_catalog.pg_get_userbyid(datdba) FROM pg_database;"
+    allusers = '' if allusers else "WHERE pg_catalog.pg_get_userbyid(datdba) !='postgres'"
+    q="SELECT datname, pg_catalog.pg_get_userbyid(datdba) FROM pg_database {};".format(allusers)
     dbs = psql(q,conn)
     conn.close()
     return dbs
@@ -22,14 +34,7 @@ def checkDatabase(dbname='tm351',
     conn.close()
     return dbs
     
-def _getConnection(dbname='tm351',
-                     host='localhost', port=5432,
-                     user='tm351admin', password='tm351admin'):
-    engine = create_engine("postgresql://{user}:{password}@{host}:{port}/{dbname}".format(dbname=dbname, host=host, port=port, user=user, password=password))
-    conn = engine.connect()
-    conn.execution_options(isolation_level="AUTOCOMMIT")
-    return conn
-    
+
     
     
 def forceDropdb(dbname='tm351',
