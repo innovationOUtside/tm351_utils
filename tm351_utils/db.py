@@ -115,3 +115,23 @@ def showColumns(dbname='tm351',table=None,
     cols = psql(q,conn)
     conn.close()
     return cols
+    
+def showUsers(dbname='tm351',table=None,
+                host='localhost', port=5432,
+                user='tm351', password='tm351'):
+    ''' Return a table of PostgreSQL database users and roles. '''
+    
+    q='''SELECT u.usename AS "Role name",
+  CASE WHEN u.usesuper AND u.usecreatedb THEN CAST('superuser, create
+database' AS pg_catalog.text)
+       WHEN u.usesuper THEN CAST('superuser' AS pg_catalog.text)
+       WHEN u.usecreatedb THEN CAST('create database' AS
+pg_catalog.text)
+       ELSE CAST('' AS pg_catalog.text)
+  END AS "Attributes"
+FROM pg_catalog.pg_user u
+ORDER BY 1;'''
+    conn = _getConnection(dbname, host, port, user, password)
+    users = psql(q,conn)
+    conn.close()
+    return users
