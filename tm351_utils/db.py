@@ -71,13 +71,10 @@ def forceCleandb(dbname,user='tm351'):
         
     conn.close()
     
-
-def clearConnections(dbname,
+def showConnections(dbname,
                      host='localhost', port=5432,
                      user='tm351', password='tm351',
                      dbconn='tm351'):
-    ''' Clear all connections associated with a particular database. '''
-                     
     #Look for a database of the required name
     dbs=checkDatabase(dbname,host,port,user,password)
     #Return silently if it doesn't exist
@@ -85,18 +82,33 @@ def clearConnections(dbname,
     
     conn = _getConnection(dbconn, host, port, user, password)
     #Check for connections to that database
-    q="SELECT pid FROM pg_stat_activity WHERE pid <> pg_backend_pid() AND datname='{db}';".format(db=dbname)
+    q="SELECT datname, usename, pid, query FROM pg_stat_activity WHERE pid <> pg_backend_pid() AND datname='{db}';".format(db=dbname)
     openconns=psql(q,conn)
+    conn.close()
+    return openconns
+
+def clearConnections(dbname,
+                     host='localhost', port=5432,
+                     user='tm351', password='tm351',
+                     dbconn='tm351'):
+    ''' Clear all connections associated with a particular database. '''
+                     
     #Delete any outstanding connections to that database
-    print("Closing connections on {}....".format(dbname))
+    
+    openconns = showConnections(dbname,host, port,user, password,dbconn)
+                     
     if len(openconns):
+        print("Closing connections on {}....".format(dbname))
+        conn = _getConnection(dbconn, host, port, user, password)
         for openconn in openconns['pid'].tolist():
             conn.execute("SELECT pg_terminate_backend({oc});".format(oc=openconn))
-    #Superstitiously, give everything time to clear down
-    #It also makes users think something is happening
-    sleep(1.5)
-    print('...connections closed.\n\nYou will need to reconnect %sql magics in other notebooks.\n\n')
-    conn.close()
+        #Superstitiously, give everything time to clear down
+        #It also makes users think something is happening
+        sleep(1.5)
+        print('...connections closed.\n\nYou will need to reconnect %sql magics in other notebooks.\n\n')
+        conn.close()
+    else: print("No connections found on {}.\n".format(dbname))
+
 
 def showTables(dbname='tm351',
                 host='localhost', port=5432,
