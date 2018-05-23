@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from pandas import read_sql as psql
-
+from time import sleep
 
 def _getConnection(dbname='tm351',
                      host='localhost', port=5432,
@@ -72,9 +72,10 @@ def forceCleandb(dbname,user='tm351'):
     conn.close()
     
 
-def clearConnections(dbname='tm351',
+def clearConnections(dbname,
                      host='localhost', port=5432,
-                     user='tm351', password='tm351'):
+                     user='tm351', password='tm351',
+                     dbconn='tm351'):
     ''' Clear all connections associated with a particular database. '''
                      
     #Look for a database of the required name
@@ -82,14 +83,19 @@ def clearConnections(dbname='tm351',
     #Return silently if it doesn't exist
     if len(dbs)==0: return
     
-    conn = _getConnection(dbname, host, port, user, password)
+    conn = _getConnection(dbconn, host, port, user, password)
     #Check for connections to that database
     q="SELECT pid FROM pg_stat_activity WHERE pid <> pg_backend_pid() AND datname='{db}';".format(db=dbname)
     openconns=psql(q,conn)
     #Delete any outstanding connections to that database
+    print("Closing connections on {}....".format(dbname))
     if len(openconns):
         for openconn in openconns['pid'].tolist():
             conn.execute("SELECT pg_terminate_backend({oc});".format(oc=openconn))
+    #Superstitiously, give everything time to clear down
+    #It also makes users think something is happening
+    sleep(1.5)
+    print('...connections closed.\n\nYou will need to reconnect %sql magics in other notebooks.\n\n')
     conn.close()
 
 def showTables(dbname='tm351',
