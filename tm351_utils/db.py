@@ -153,3 +153,28 @@ ORDER BY 1;'''
     users = psql(q,conn)
     conn.close()
     return users
+
+def showConstraints(dbname='tm351',table=None,
+                host='localhost', port=5432,
+                user='tm351', password='tm351', typ=None):
+    ''' Show constraints asscoiated with a database. '''
+    
+    where = '' if not typ or not any(x for x in ['fk','foreign'] if x in typ.lower()) else "WHERE constraint_type = 'FOREIGN KEY'"
+    q='''
+    -- via https://stackoverflow.com/questions/1152260/postgres-sql-to-list-table-foreign-keys#comment8649732_1152321
+-- https://dba.stackexchange.com/a/37068/152044
+SELECT tc.constraint_name, tc.table_name, kcu.column_name,
+    constraint_type, pg_get_constraintdef(c.oid) AS constraintDef,
+    CASE constraint_type WHEN 'FOREIGN KEY' THEN ccu.table_name ELSE '' END AS foreign_table_name,
+    CASE constraint_type WHEN 'FOREIGN KEY' THEN ccu.column_name ELSE '' END AS foreign_column_name 
+FROM information_schema.table_constraints AS tc 
+    JOIN information_schema.key_column_usage AS kcu USING (constraint_schema, constraint_name) 
+    JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name)
+    JOIN pg_constraint AS c ON c.conname = tc.constraint_name AND tc.constraint_schema=tc.table_schema
+    JOIN pg_namespace n ON n.oid = c.connamespace AND n.nspname = tc.table_schema
+{where} ;
+    '''.format(where=where)
+    conn = _getConnection(dbname, host, port, user, password)
+    constraints = psql(q,conn)
+    conn.close()
+    return constraints
