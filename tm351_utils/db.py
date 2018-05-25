@@ -154,12 +154,20 @@ ORDER BY 1;'''
     conn.close()
     return users
 
+    
 def showConstraints(dbname='tm351',table=None,
                 host='localhost', port=5432,
-                user='tm351', password='tm351', typ=None):
+                user='tm351', password='tm351', typ=None, cols=[], asdict=False):
     ''' Show constraints asscoiated with a database. '''
     
-    where = '' if not typ or not any(x for x in ['fk','foreign'] if x in typ.lower()) else "WHERE constraint_type = 'FOREIGN KEY'"
+    table= '' if not table else table if isinstance(table, list) else [table]
+    table= '' if not table else ','.join(["'{}'".format(t) for t in table])
+    
+    where = 'WHERE'
+    where = '' if not typ or not any(x for x in ['fk','foreign'] if x in typ.lower()) else "{} constraint_type = 'FOREIGN KEY'".format(where)
+    where = '{w} tc.table_name IN ({t})'.format(w='{} AND'.format(where) if where!='WHERE' else where,
+                                  t=table) if table else where
+    
     q='''
     -- via https://stackoverflow.com/questions/1152260/postgres-sql-to-list-table-foreign-keys#comment8649732_1152321
 -- https://dba.stackexchange.com/a/37068/152044
@@ -177,4 +185,9 @@ FROM information_schema.table_constraints AS tc
     conn = _getConnection(dbname, host, port, user, password)
     constraints = psql(q,conn)
     conn.close()
+    
+    if cols:
+        cols = cols if isinstance(cols, list) else [cols]
+        constraints=constraints[cols]
+    constraints = constraints.to_dict(orient='record') if asdict else constraints
     return constraints

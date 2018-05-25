@@ -24,6 +24,7 @@ Some utilities to support notebook activities in TM351
 - `showTables(DBNAME)`:
 - `showColumns(DBNAME, TABLENAME)`:
 - `clearConnections(DBNAME)`:
+- `showConstraints(DBNAME, [TABLENAME(S)])`:
 
 ## See Also
 Relavent to TM351 but not installed directly as part of the `tm351_utils` package:
