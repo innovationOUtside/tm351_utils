@@ -124,12 +124,16 @@ def showTables(dbname='tm351',
 def showColumns(dbname='tm351',table=None,
                 host='localhost', port=5432,
                 user='tm351', password='tm351'):
-    ''' Return columns in specified table. '''
+    ''' Return columns in specified table(s). '''
 
-    if not table: return None
+    table = table if table else showTables(dbname, host, port, user, password)['tablename'].tolist()
+    
+    if not table: return
+    table= table if isinstance(table, list) else [table]
+    table= ','.join(["'{}'".format(t) for t in table])
     
     conn = _getConnection(dbname, host, port, user, password)
-    q="SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '{}';".format(table)
+    q="SELECT column_name, table_name FROM INFORMATION_SCHEMA.COLUMNS 'WHERE table_name IN ({t})' ORDER BY table_name, column_name;".format(t=table)
     cols = psql(q,conn)
     conn.close()
     return cols
