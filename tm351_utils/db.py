@@ -133,7 +133,7 @@ def showColumns(dbname='tm351',table=None,
     table= ','.join(["'{}'".format(t) for t in table])
     
     conn = _getConnection(dbname, host, port, user, password)
-    q="SELECT column_name, table_name FROM INFORMATION_SCHEMA.COLUMNS 'WHERE table_name IN ({t})' ORDER BY table_name, column_name;".format(t=table)
+    q="SELECT column_name, table_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name IN ({t}) ORDER BY table_name, column_name;".format(t=table)
     cols = psql(q,conn)
     conn.close()
     return cols
