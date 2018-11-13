@@ -89,7 +89,7 @@ def showConnections(dbname,
 
 def clearConnections(dbname,
                      host='localhost', port=5432,
-                     user='tm351', password='tm351',
+                     user='tm351admin', password='tm351admin',
                      dbconn='tm351'):
     ''' Clear all connections associated with a particular database. '''
                      
